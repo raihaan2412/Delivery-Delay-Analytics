@@ -1,19 +1,10 @@
 import pandas as pd
 from pathlib import Path
-
-# -----------------------------
-# 1. Load dataset
-# -----------------------------
-
 file_path = Path("Data/logistics-delivery-delay-causes.xlsx")
 
 df = pd.read_excel(file_path)
 
 print("Original shape:", df.shape)
-
-# -----------------------------
-# 2. Remove unnecessary address fields
-# -----------------------------
 
 columns_to_drop = [
     "origin_street_address",
@@ -22,9 +13,6 @@ columns_to_drop = [
 
 df = df.drop(columns=columns_to_drop)
 
-# -----------------------------
-# 3. Convert date columns
-# -----------------------------
 
 date_columns = [
     "scheduled_pickup_date",
@@ -36,34 +24,21 @@ date_columns = [
 for column in date_columns:
     df[column] = pd.to_datetime(df[column], errors="coerce")
 
-# -----------------------------
-# 4. Remove duplicate shipments
-# -----------------------------
+
 
 df = df.drop_duplicates(subset="shipment_id")
-# Remove incomplete shipment records
+
 df = df.dropna(subset=["shipment_id"])
-# -----------------------------
-# 5. Create delivery delay
-# -----------------------------
+
 
 df["calculated_delay_days"] = (
     df["actual_delivery_date"] -
     df["expected_delivery_date"]
 ).dt.days
 
-# Negative delay means early delivery.
-# For delay analysis, minimum delay is 0.
 
 df["calculated_delay_days"] = df["calculated_delay_days"].clip(lower=0)
 
-# -----------------------------
-# 6. Create on-time status
-# -----------------------------
-
-# -----------------------------
-# 6. Create delivery status
-# -----------------------------
 
 def get_delivery_status(row):
     if pd.isna(row["actual_delivery_date"]):
@@ -74,30 +49,15 @@ def get_delivery_status(row):
         return "On Time"
 
 df["delivery_status"] = df.apply(get_delivery_status, axis=1)
-
-# -----------------------------
-# 7. Create day of week
-# -----------------------------
-
 df["delivery_day"] = df["actual_delivery_date"].dt.day_name()
-
-# -----------------------------
-# 8. Create month
-# -----------------------------
 
 df["delivery_month"] = df["actual_delivery_date"].dt.month_name()
 
-# -----------------------------
-# 8.5 Additional analysis columns
-# -----------------------------
-
-# Pickup delay
 df["pickup_delay_days"] = (
     df["actual_pickup_date"] -
     df["scheduled_pickup_date"]
 ).dt.days
 
-# Delay category
 def categorize_delay(days):
     if pd.isna(days):
         return "Delivery Pending"
@@ -112,14 +72,12 @@ def categorize_delay(days):
 
 df["delay_category"] = df["calculated_delay_days"].apply(categorize_delay)
 
-# Route
 df["route"] = (
     df["origin_city"].astype(str)
     + " → "
     + df["destination_city"].astype(str)
 )
 
-# Shipment weight category
 def categorize_weight(weight):
     if weight < 10:
         return "Light"
@@ -130,9 +88,6 @@ def categorize_weight(weight):
 
 df["weight_category"] = df["shipment_weight_kg"].apply(categorize_weight)
 
-# -----------------------------
-# 9. Basic data quality check
-# -----------------------------
 
 print("\nCleaned shape:", df.shape)
 
@@ -147,10 +102,6 @@ print(df["delivery_status"].value_counts())
 
 print("\nAverage delay:",
       round(df["calculated_delay_days"].mean(), 2), "days")
-
-# -----------------------------
-# 9.5 Validate existing delay information
-# -----------------------------
 
 print("\nExisting delay flag:")
 print(df["is_delayed"].value_counts(dropna=False))
@@ -170,9 +121,6 @@ print(
     )
 )
 
-# -----------------------------
-# 9.6 Delivery Delay Analysis
-# -----------------------------
 
 print("\n==============================")
 print("DELIVERY DELAY ANALYSIS")
@@ -202,8 +150,6 @@ print("On-Time Shipments:", on_time_shipments)
 print("Delivery Pending:", pending_shipments)
 print("On-Time Rate:", round(on_time_rate, 2), "%")
 
-
-# Delay by carrier
 print("\nDelay by Carrier:")
 
 carrier_analysis = (
@@ -225,7 +171,6 @@ print(
 )
 
 
-# Delay by shipment type
 print("\nDelay by Shipment Type:")
 
 shipment_analysis = (
@@ -247,7 +192,6 @@ print(
 )
 
 
-# Delay by vehicle type
 print("\nDelay by Vehicle Type:")
 
 vehicle_analysis = (
@@ -268,8 +212,6 @@ print(
     .sort_values("Delay Rate (%)", ascending=False)
 )
 
-
-# Most common delay causes
 print("\nDelay Causes:")
 
 cause_analysis = (
@@ -301,9 +243,6 @@ print(
     weight_analysis
     .sort_values("Delay Rate (%)", ascending=False)
 )
-
-
-# Delay by delivery day
 print("\nDelay by Delivery Day:")
 
 day_analysis = (
@@ -325,10 +264,6 @@ print(
     .sort_values("Delay Rate (%)", ascending=False)
 )
 
-
-# -----------------------------
-# 10. Save cleaned dataset
-# -----------------------------
 
 output_path = Path("Data/delivery_delay_cleaned.csv")
 

@@ -1,20 +1,12 @@
 import pandas as pd
 import streamlit as st
 import plotly.express as px
-
-# --------------------------------------------------
-# PAGE CONFIG
-# --------------------------------------------------
-
 st.set_page_config(
     page_title="Delivery Delay Analytics",
     page_icon="🚚",
     layout="wide"
 )
 
-# --------------------------------------------------
-# CUSTOM CSS
-# --------------------------------------------------
 
 st.markdown("""
 <style>
@@ -58,10 +50,6 @@ section[data-testid="stSidebar"] {
 """, unsafe_allow_html=True)
 
 
-# --------------------------------------------------
-# LOAD DATA
-# --------------------------------------------------
-
 @st.cache_data
 def load_data():
     return pd.read_csv("Data/delivery_delay_cleaned.csv")
@@ -70,20 +58,12 @@ def load_data():
 df = load_data()
 
 
-# --------------------------------------------------
-# TITLE
-# --------------------------------------------------
-
 st.title("🚚 Delivery Delay Analytics")
 
 st.markdown(
     "Delivery Performance • Delay Causes • Transport Analysis • Operational Insights"
 )
 
-
-# --------------------------------------------------
-# SIDEBAR FILTERS
-# --------------------------------------------------
 
 st.sidebar.header("🔎 Filters")
 
@@ -120,9 +100,6 @@ selected_status = st.sidebar.multiselect(
 )
 
 
-# --------------------------------------------------
-# FILTER DATA
-# --------------------------------------------------
 
 filtered_df = df[
     df["carrier_name"].isin(selected_carriers)
@@ -131,10 +108,6 @@ filtered_df = df[
     & df["delivery_status"].isin(selected_status)
 ]
 
-
-# --------------------------------------------------
-# KPI CALCULATIONS
-# --------------------------------------------------
 
 total_shipments = len(filtered_df)
 
@@ -167,10 +140,6 @@ if pd.isna(average_delay):
     average_delay = 0
 
 
-# --------------------------------------------------
-# KPI CARDS
-# --------------------------------------------------
-
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
@@ -200,11 +169,6 @@ with col4:
 
 st.markdown("---")
 
-
-# --------------------------------------------------
-# CHART 1 — DELIVERY STATUS
-# --------------------------------------------------
-
 status_data = (
     filtered_df["delivery_status"]
     .value_counts()
@@ -233,11 +197,6 @@ st.plotly_chart(
     fig_status,
     width="stretch"
 )
-
-
-# --------------------------------------------------
-# CHART 2 — DELAY BY SHIPMENT TYPE
-# --------------------------------------------------
 
 shipment_chart = (
     filtered_df
@@ -275,10 +234,6 @@ st.plotly_chart(
 )
 
 
-# --------------------------------------------------
-# CHART 3 — DELAY BY VEHICLE
-# --------------------------------------------------
-
 vehicle_chart = (
     filtered_df
     .groupby("vehicle_type")
@@ -314,11 +269,6 @@ st.plotly_chart(
     width="stretch"
 )
 
-
-# --------------------------------------------------
-# CHART 4 — DELAY CAUSES
-# --------------------------------------------------
-
 cause_chart = (
     filtered_df[
         filtered_df["is_delayed"] == 1
@@ -351,10 +301,6 @@ st.plotly_chart(
     width="stretch"
 )
 
-
-# --------------------------------------------------
-# CHART 5 — WEIGHT CATEGORY
-# --------------------------------------------------
 
 weight_chart = (
     filtered_df
@@ -392,10 +338,6 @@ st.plotly_chart(
 )
 
 
-# --------------------------------------------------
-# KEY INSIGHTS
-# --------------------------------------------------
-
 st.markdown("---")
 
 st.header("💡 Key Insights")
@@ -408,11 +350,6 @@ st.markdown("""
 - 📦 A portion of shipments are still **Delivery Pending**, so they should not be treated as on-time.
 """)
 
-
-# --------------------------------------------------
-# RECOMMENDATIONS
-# --------------------------------------------------
-
 st.header("🎯 Operational Recommendations")
 
 st.markdown("""
@@ -424,10 +361,6 @@ st.markdown("""
 - Track pending deliveries separately from completed shipments.
 """)
 
-
-# --------------------------------------------------
-# LIMITATION
-# --------------------------------------------------
 
 st.markdown("---")
 
